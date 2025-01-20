@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MapPin, Edit2, Trash2 } from "lucide-react";
+import { MapPin, Edit2, Trash2, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,7 @@ const ProfileCard = ({
   isAdminMode,
   setSelectedProfile,
   setShowMap,
+  profiles,
 }) => {
   // Handles deleting a profile by ID
   const handleDeleteProfile = (id) => {
@@ -62,9 +63,12 @@ const ProfileCard = ({
     <Card className="w-full">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>{profile.name}</CardTitle>
-            <CardDescription>{profile.description}</CardDescription>
+          <div className="flex space-x-4 items-center">
+            <User className="w-10 h-10 rounded-full bg-gray-200"></User>
+            <div className="space-y-2">
+              <CardTitle>{profile.name}</CardTitle>
+              <CardDescription>{profile.description}</CardDescription>
+            </div>
           </div>
           {isAdminMode && (
             <div className="flex gap-2">
