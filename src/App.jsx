@@ -27,6 +27,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ProfileCard from "./components/ProfileCard";
+import { geocodeAddress } from "./utils/geoLocationHelper";
 
 // Initial profiles data remains the same
 const initialProfiles = [
@@ -122,25 +124,25 @@ const MapComponent = ({ profile, onClose }) => {
 };
 
 // Geocoding function using fetch
-const geocodeAddress = async (address) => {
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        address
-      )}&key=YOUR_GOOGLE_MAPS_API_KEY`
-    );
-    const data = await response.json();
+// const geocodeAddress = async (address) => {
+//   try {
+//     const response = await fetch(
+//       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+//         address
+//       )}&key=YOUR_GOOGLE_MAPS_API_KEY`
+//     );
+//     const data = await response.json();
 
-    if (data.status === "OK" && data.results.length > 0) {
-      const { lat, lng } = data.results[0].geometry.location;
-      return { lat, lng };
-    }
-    throw new Error("Unable to geocode address");
-  } catch (error) {
-    console.error("Geocoding error:", error);
-    return { lat: 0, lng: 0 };
-  }
-};
+//     if (data.status === "OK" && data.results.length > 0) {
+//       const { lat, lng } = data.results[0].geometry.location;
+//       return { lat, lng };
+//     }
+//     throw new Error("Unable to geocode address");
+//   } catch (error) {
+//     console.error("Geocoding error:", error);
+//     return { lat: 0, lng: 0 };
+//   }
+// };
 
 const App = () => {
   // State to manage the list of profiles
@@ -211,119 +213,6 @@ const App = () => {
     }
   };
 
-  // Handles deleting a profile by ID
-  const handleDeleteProfile = (id) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setProfiles(profiles.filter((profile) => profile.id !== id));
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  // Handles updating a profile
-  const handleEditProfile = async (updatedProfile) => {
-    setIsLoading(true);
-    try {
-      const coordinates = await geocodeAddress(updatedProfile.address);
-      // Update the profile data with new coordinates
-      const profileWithCoordinates = {
-        ...updatedProfile,
-        coordinates,
-      };
-      // Replace the updated profile in the list
-      setProfiles(
-        profiles.map((profile) =>
-          profile.id === updatedProfile.id ? profileWithCoordinates : profile
-        )
-      );
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Profile card component remains the same
-  const ProfileCard = ({ profile }) => (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>{profile.name}</CardTitle>
-            <CardDescription>{profile.description}</CardDescription>
-          </div>
-          {isAdminMode && (
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleEditProfile(profile)}
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteProfile(profile.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="h-4 w-4" />
-          <span className="text-sm">{profile.address}</span>
-        </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              View Details
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{profile.name}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Contact Information</h4>
-                <p>Email: {profile.email}</p>
-                <p>Phone: {profile.phone}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Interests</h4>
-                <div className="flex gap-2 flex-wrap">
-                  {profile?.interests.map((interest, index) => (
-                    <span
-                      key={index}
-                      className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => {
-            setSelectedProfile(profile);
-            setShowMap(true);
-          }}
-        >
-          Show on Map
-        </Button>
-      </CardFooter>
-    </Card>
-  );
   // Handles changes in form inputs for adding a new user
   const handleOnClick = (e) => {
     const { name, value } = e.target;
@@ -491,7 +380,15 @@ const App = () => {
           )}
           {/* Render filtered profiles */}
           {filteredProfiles.map((profile) => (
-            <ProfileCard key={profile.id} profile={profile} />
+            <ProfileCard
+              key={profile.id}
+              profile={profile}
+              setIsLoading={setIsLoading}
+              setProfiles={setProfiles}
+              isAdminMode={isAdminMode}
+              setSelectedProfile={setSelectedProfile}
+              setShowMap={setShowMap}
+            />
           ))}
         </div>
       )}
